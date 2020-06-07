@@ -77,6 +77,18 @@ void my_mouse_callback(int event, int x, int y, int flags, void *param)
         options.Y = y;
         options.drawing_dot = true;
         break;
+
+    case EVENT_MOUSEMOVE:
+        options.X = x;
+        options.Y = y;
+        //options.drawing_dot = true;
+        break;
+    case EVENT_LBUTTONUP:
+        options.X = x;
+        options.Y = y;
+        options.drawing_dot = false;
+        break;
+
     }
 }
 void ex2()
@@ -91,8 +103,8 @@ void ex2()
     {
         if (options.drawing_dot)
         {
-            rectangle(frame, Point(options.X-4, options.Y-4), Point(options.X+4, options.Y+4), Scalar(0, 0, 255), 2);
-            options.drawing_dot = false;
+            rectangle(frame, Point(options.X-4, options.Y-4), Point(options.X+4, options.Y+4), Scalar(255, 0, 255), 2);
+            
         }
         imshow("Window1", frame);
         waitKey(10);
@@ -100,8 +112,111 @@ void ex2()
     // releaseImage(&image);
 }
 
+void ex3()
+{
+    Mat image = imread("photo.jpg", 0);
+    Mat data, dx, dy;
+    namedWindow("Original");
+    namedWindow("Sobel");
+    namedWindow("Normalize");
+    imshow("Original", image);
+    image.convertTo(data, CV_32FC1);
+    data = data * 4;
+    Sobel(data, dx, CV_32FC1, 1, 0);
+    Sobel(data, dy, CV_32FC1, 0, 1);
+    MatConstIterator_<float> dx_it = dx.begin<float>();
+    MatConstIterator_<float> dx_it_end = dx.end<float>();
+    MatConstIterator_<float> dy_it = dy.begin<float>();
+    MatIterator_<float> dst_it = data.begin<float>();
+    for (; dx_it != dx_it_end; dst_it++, dx_it++, dy_it++)
+    {
+        *dst_it = sqrt(pow((*dx_it), 2) + pow((*dy_it), 2));
+    }
+    data.convertTo(image, CV_8UC1);
+    imshow("Sobel", image);
+    normalize(data, data, 0, 255, NORM_MINMAX);
+    data.convertTo(image, CV_8UC1);
+    imshow("Normalize", image);
+
+    waitKey(5000);
+}
+
+void ex4() {
+    Mat thres_image;
+    // namedWindow("Original");
+    // namedWindow("threshold");
+    // //VideoCapture cap(0); // open the default camera
+    // //if (!cap.isOpened()) // check if we succeeded
+    //  //   return -1;
+    // do
+    // {
+    Mat image = imread("photo.jpg");
+    imshow("Orig", image);
+    //waitKey(5000);
+    //cap >> image;
+    cvtColor(image, image, COLOR_BGR2GRAY);
+    imshow("Original", image);
+
+    threshold(image, thres_image, 80, 255, THRESH_BINARY);
+    imshow("threshold1", thres_image);
+    threshold(image, thres_image, 80, 255, THRESH_BINARY_INV);
+    imshow("threshold2", thres_image);
+
+    threshold(image, thres_image, 160, 255, THRESH_BINARY);
+    imshow("threshold3", thres_image);
+    while (waitKey(30) != 27)
+    // break;
+        waitKey(5000);
+    // } while (1);
+}
+
+void ex5() {
+    Mat edge_image;
+    namedWindow("Original");
+    namedWindow("Edge");
+    // VideoCapture cap(0); // open the default camera
+    // if (!cap.isOpened()) // check if we succeeded
+    //     return -1;
+    do
+    {
+        Mat image = imread("photo.jpg");
+
+        cvtColor(image, image, COLOR_BGR2GRAY);
+        // cap >> image;
+        imshow("Original", image);
+        image.convertTo(image, CV_32FC1);
+        Sobel(image, edge_image, CV_32FC1, 1, 0);
+
+        edge_image.convertTo(edge_image, CV_8UC1);
+        imshow("Edge1", edge_image);
+        Scharr(image, edge_image, CV_32FC1, 1, 0);
+        
+        edge_image.convertTo(edge_image, CV_8UC1);
+        imshow("Edge2", edge_image);
+
+
+        Sobel(image, edge_image, CV_32FC1, 1, 1);
+
+        edge_image.convertTo(edge_image, CV_8UC1);
+        imshow("Edge3", edge_image);
+
+        // Scharr(image, edge_image, CV_32FC1, 1, 1);
+        
+        // edge_image.convertTo(edge_image, CV_8UC1);
+        // imshow("Edge2", edge_image);
+
+
+        // Laplacian(image, edge_image, CV_32FC1);
+        
+        // edge_image.convertTo(edge_image, CV_8UC1);
+        // imshow("Edge3", edge_image);
+        while (waitKey(30) != 27);
+        return; 
+    } while (1);
+}
+
 int main()
 {
     //ex1();
-    ex2();
+    ex5();
 }
